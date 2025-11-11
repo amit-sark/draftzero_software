@@ -345,7 +345,7 @@ class UserProfile:
             except Exception as e:
                 print(f"Polling error: {e}")
             
-            time.sleep(2)  # Poll every 5 seconds
+            time.sleep(5)  # Poll every 5 seconds
             attempt += 1
         
         # Timeout

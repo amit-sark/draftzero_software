@@ -208,12 +208,7 @@ class FeedbackForm:
             return
         
         date_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        """{
-            "name": "string",
-            "timestamp": "2025-10-10T16:48:52.667Z",
-            "email": "user@example.com",
-            "feedback": "string"
-            }"""
+
         
         
         payload = {

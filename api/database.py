@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = "mysql+pymysql://root@localhost/draftzero_db"
+DATABASE_URL = "mysql+pymysql://root@localhost/draftzero"
 
 
 # Engine: put pool_pre_ping here if needed

@@ -1,5 +1,6 @@
 import os
 import subprocess
+from tkinter import messagebox
 
 def download_youtube_audio(url, format="mp3"):
     ytdlp_path = os.path.join(os.getcwd(), "module", "yt.exe")
@@ -27,8 +28,12 @@ def download_youtube_audio(url, format="mp3"):
     try:
         subprocess.run(cmd, check=True, creationflags=CREATE_NO_WINDOW)
         print("✅ Download complete.")
+        return "success"
     except subprocess.CalledProcessError as e:
+        messagebox.showerror(title="Error",message="❌ Failed to fetch video details.\nPlease make sure the video is public and the profile is not locked.")
         print(f"❌ Error downloading: {e}")
+        return "failed"
+
 
 # Example call
 # download_youtube_audio("https://youtu.be/M7u9cVwLnm4?si=n-m_xndylp0THWF9")

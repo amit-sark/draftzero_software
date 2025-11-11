@@ -6,7 +6,7 @@ from tkinter import filedialog
 from threading import Thread
 
 from LIBS.caption import Transcriber
-from LIBS.gemini_prompt import generate_seo
+from LIBS.gemini_prompt import GeminiApiClient
 
 
 appdata = os.getenv('APPDATA')
@@ -58,7 +58,7 @@ class SeoGenerator:
 
                 result = self.t.video_to_text()
 
-                seo = generate_seo(transcribed_text=result)
+                seo = GeminiApiClient().generate_seo(transcribed_text=result)
                 self.loading_running = False
 
 
@@ -107,7 +107,7 @@ class SeoGenerator:
                 self.t=Transcriber(audio_file_path=self.file_path,show_details=self.show_details)
 
                 result = self.t.audio_to_text()
-                seo = generate_seo(transcribed_text=result)
+                seo = GeminiApiClient().generate_seo(transcribed_text=result)
 
                 self.loading_running = False
                 self.scrollable_text(text=seo)

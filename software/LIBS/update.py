@@ -9,7 +9,7 @@ from serverId import quilla_Server
 
 URL = quilla_Server()
 
-APPICATION_VERSION = 1.2
+APPICATION_VERSION = 1.3
 
 
 class UpdateManager:

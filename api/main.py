@@ -124,6 +124,27 @@ def feedback(user: schemas.feedbackCreate, db: Session = Depends(get_db)):
     return new_feedback
 
 
+@app.post("/logs", response_model=schemas.UserCostingLogs)
+def userlog(user: schemas.UserCostingLogs, db: Session = Depends(get_db)):
+    logs = models.UserCostingLogs(
+        username=user.username,
+        email=user.email,
+        model=user.model,
+        input_token=user.input_token,
+        output_token = user.output_token,
+        total_token= user.total_token,
+        input_cost_inr=user.input_cost_inr,
+        output_cost_inr=user.output_cost_inr,
+        total_cost_inr=user.total_cost_inr,
+    )
+
+    db.add(logs)
+    db.commit()
+    db.refresh(logs)
+    return logs
+
+
+
 @app.get("/update")
 def get_update_info(db: Session = Depends(get_db)):
     data = db.query(models.updateCheck).first() 

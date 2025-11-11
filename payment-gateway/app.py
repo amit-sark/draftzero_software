@@ -12,7 +12,7 @@ CORS(app)
 
 # Configuration
 #app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root@localhost/wishpen"
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://draftzero:Maababasiv%402005@localhost/draftzero_db"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root@localhost/draftzero"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 

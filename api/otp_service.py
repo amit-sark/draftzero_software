@@ -24,10 +24,9 @@ def verify_otp(db: Session, email: str, otp: str):
     record = db.query(OTP).filter(OTP.email == email).order_by(OTP.created_at.desc()).first()
 
     if record and record.otp == otp:
-        if record.created_at >= datetime.now() - timedelta(minutes=5):
-            record.verified = True
-            db.commit()
-            return True
+        record.verified = True
+        db.commit()
+        return True
     return False
 
 

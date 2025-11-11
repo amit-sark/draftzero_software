@@ -1,4 +1,4 @@
-from customtkinter import CTk, CTkFrame, CTkButton, CTkLabel, CTkEntry, CTkImage, CTkOptionMenu, CTkTextbox
+from customtkinter import CTk, CTkFrame, CTkButton, CTkLabel, CTkEntry, CTkImage, CTkOptionMenu, CTkTextbox,CTkFont
 from tkinter import messagebox
 from PIL import Image, ImageSequence
 import time
@@ -8,7 +8,7 @@ from tkinter import filedialog
 
 from LIBS.audio_download import download_youtube_audio
 from LIBS.transcriber import Transcriber
-from LIBS.gemini_prompt import generate_video_script
+from LIBS.gemini_prompt import GeminiApiClient
 
 appdata = os.getenv('APPDATA')
 quilla_folder = os.path.join(appdata,'.Quilla')
@@ -80,41 +80,53 @@ class ScriptWriterLink:
 
                     self.indication()
                     self.show_details.configure(text="Please wait while\nyour assistant\nis fetching details")
-                    download_youtube_audio(link)
+                    dowanlod_flag = download_youtube_audio(link)
 
-                    self.show_details.configure(text="Your Script is\nbeing generated.\nPlease wait a moment.")
-                    transcriber = Transcriber(
-                        audio_file_path=os.path.join(appdata,'.Quilla','audio','audio.mp3'),
-                        show_details=self.show_details
-                    )
-                    result = transcriber.audio_to_text()
-                    result = generate_video_script(transcribed_text=result,language=language,duration=duration,tone=tone)
+                    if dowanlod_flag!="failed":
+                        self.show_details.configure(text="Your Script is\nbeing generated.\nPlease wait a moment.")
+                        transcriber = Transcriber(
+                            audio_file_path=os.path.join(appdata,'.Quilla','audio','audio.mp3'),
+                            show_details=self.show_details
+                        )
+                        result = transcriber.audio_to_text()
+                        result = GeminiApiClient().generate_video_script(transcribed_text=result,language=language,duration=duration,tone=tone)
 
-                    print(f"Result: {result}")
+                        print(f"Result: {result}")
 
-                    end_time = time.time()
-                    print(f" Total Consume time: {(end_time - start_time)} sec ")
+                        if result!="failed":
 
-                    self.scrollable_text(result)
+                            end_time = time.time()
+                            print(f" Total Consume time: {(end_time - start_time)} sec ")
 
-                    self.show_details.configure(
-                        text="Your words are woven\ninto form — time to save\nthis creation."
-                    )
+                            self.scrollable_text(result)
 
-                    # Stop the loading animation
-                    self.loading_running = False
-                    self.in_progress.configure(text="Done")
-                    # Show success frame with check.png
-                    self.success()
-                    self.generate_script_btn.configure(state="normal")
+                            self.show_details.configure(
+                                text="Your words are woven\ninto form — time to save\nthis creation."
+                            )
 
-                    self.save_script_btn = CTkButton(
-                        master=self.element_window, text="Save Script", font=("", 14, "bold"),
-                        height=38, corner_radius=10, fg_color="#007bff",
-                        text_color="white", hover_color="#0157b3",
-                        command=self.save_script
-                    )
-                    self.save_script_btn.place(relx=0.45, rely=0.85)
+                            # Stop the loading animation
+                            self.loading_running = False
+                            self.in_progress.configure(text="Done")
+                            # Show success frame with check.png
+                            self.success()
+                            self.generate_script_btn.configure(state="normal")
+
+                            self.save_script_btn = CTkButton(
+                                master=self.element_window, text="Save Script", font=("", 14, "bold"),
+                                height=38, corner_radius=10, fg_color="#007bff",
+                                text_color="white", hover_color="#0157b3",
+                                command=self.save_script
+                            )
+                            self.save_script_btn.place(relx=0.45, rely=0.9)
+                            
+                        else: 
+                            self.loading_running = False
+                            self.failed()
+
+                    else:
+                        self.loading_running = False
+                        self.failed()
+
                 else:
                     messagebox.showinfo(title="Signup",message="Please signup first to continue!")
         except:
@@ -197,7 +209,7 @@ class ScriptWriterLink:
         Duration = CTkLabel(master=self.element_window, text="Duration(min)", font=("", 13, "bold"))
         Duration.place(relx=0.27, rely=0.63)
 
-        languages = ["English", "Hindi", "Hinglish", "Custom"]
+        languages = ["English", "Hindi", "Hinglish"]
         self.language_option = CTkOptionMenu(
             master=self.element_window, values=languages, height=40, width=120,
             fg_color="#f9f9f7", text_color="black",
@@ -206,7 +218,7 @@ class ScriptWriterLink:
         )
         self.language_option.place(relx=0.03, rely=0.69)
 
-        tones = ["Professional", "Casual", "Comedy", "Informative", "Custom"]
+        tones = ["Professional", "Energetic", "Comedy", "Informative"]
         self.tone_option = CTkOptionMenu(
             master=self.element_window, values=tones, height=40, width=120,
             fg_color="#f9f9f7", text_color="black",
@@ -234,6 +246,17 @@ class ScriptWriterLink:
 
         #self.indication()
         #self.success()
+        #self.failed()
+        #self.scrollable_text(text="Hello this is test one for scrollable text unit.")
+
+
+        #self.save_script_btn = CTkButton(
+        #                master=self.element_window, text="Save Script", font=("", 14, "bold"),
+        #                height=38, corner_radius=10, fg_color="#007bff",
+        #                text_color="white", hover_color="#0157b3",
+        #                command=self.save_script
+        #            )
+        #self.save_script_btn.place(relx=0.45, rely=0.9)
         
     def scrollable_text(self, text):
         try:
@@ -243,10 +266,10 @@ class ScriptWriterLink:
 
         self.scroll_text_indication = CTkTextbox(
             master=self.element_window,
-            width=600, height=250,
-            corner_radius=10
+            corner_radius=20,
+            font=CTkFont(size=16)
         )
-        self.scroll_text_indication.place(relx=0.45, rely=0.83, anchor="sw")
+        self.scroll_text_indication.place(relx=0.45, rely=0.87, anchor="sw",relwidth=0.52,relheight=.45)
         self.scroll_text_indication.insert("0.0", text)
         self.scroll_text_indication.configure(state="disabled")
 
@@ -258,9 +281,9 @@ class ScriptWriterLink:
 
         self.indication_progress_frame = CTkFrame(
             master=self.element_window, corner_radius=25,
-            height=270, width=180, fg_color="#f4f2f2"
+            height=250, width=180, fg_color="#f4f2f2"
         )
-        self.indication_progress_frame.place(relx=0.45, rely=0.1)
+        self.indication_progress_frame.place(relx=0.45, rely=0.05)
 
         gif_path = os.path.join(os.getcwd(), 'assets', 'indicators', 'loading.gif')
         gif = Image.open(gif_path)
@@ -303,9 +326,9 @@ class ScriptWriterLink:
         success_ctkimg = CTkImage(light_image=success, dark_image=success, size=(26, 26))
         self.success_frame = CTkFrame(
             master=self.element_window, corner_radius=25,
-            height=270, width=180, fg_color="#f4f2f2"
+            height=250, width=180, fg_color="#f4f2f2"
         )
-        self.success_frame.place(relx=0.63, rely=0.1)
+        self.success_frame.place(relx=0.63, rely=0.05)
 
         indicator_img = CTkLabel(master=self.success_frame, image=success_ctkimg, text="")
         indicator_img.place(relx=0.1, rely=0.083)
@@ -386,6 +409,35 @@ class ScriptWriterLink:
 
             self.window.after_idle(place_default_line)
         return btn
+
+    def failed(self):
+        success = Image.open(os.path.join(os.getcwd(), 'assets', 'indicators', 'exclamation.png'))
+        success_ctkimg = CTkImage(light_image=success, dark_image=success, size=(26, 26))
+        self.success_frame = CTkFrame(
+            master=self.element_window, corner_radius=25,
+            height=250, width=180, fg_color="#f4f2f2"
+        )
+        self.success_frame.place(relx=0.63, rely=0.05)
+
+        indicator_img = CTkLabel(master=self.success_frame, image=success_ctkimg, text="")
+        indicator_img.place(relx=0.1, rely=0.083)
+
+        in_progress = CTkLabel(master=self.success_frame, text="Failed",
+                               text_color="#007bff", font=("", 17, 'bold'))
+        in_progress.place(relx=0.05, rely=0.2)
+
+        _ = CTkLabel(master=self.success_frame, text="Script Failed",
+                     font=("", 25, 'bold'), justify="left")
+        _.place(relx=0.03, rely=0.35)
+
+        _ = CTkLabel(
+            master=self.success_frame,
+            text="Please make sure the\nvideo is public and the\nprofile is not locked.",
+            justify='left', font=("", 14), text_color="#a0a1a1"
+        )
+        _.place(relx=0.03, rely=0.67)
+
+
 
 
 '''# Run window

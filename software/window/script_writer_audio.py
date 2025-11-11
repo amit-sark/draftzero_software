@@ -1,4 +1,4 @@
-from customtkinter import CTk, CTkFrame, CTkButton, CTkLabel, CTkEntry, CTkImage, CTkOptionMenu, CTkTextbox
+from customtkinter import CTk, CTkFrame, CTkButton, CTkLabel, CTkEntry, CTkImage, CTkOptionMenu, CTkTextbox,CTkFont
 from tkinter import messagebox
 from PIL import Image, ImageSequence
 import time
@@ -8,7 +8,7 @@ from tkinter import filedialog
 
 from LIBS.audio_download import download_youtube_audio
 from LIBS.transcriber import Transcriber
-from LIBS.gemini_prompt import generate_video_script
+from LIBS.gemini_prompt import GeminiApiClient
 
 
 appdata = os.getenv('APPDATA')
@@ -103,7 +103,7 @@ class ScriptWriterAudio:
                         show_details=self.show_details
                     )
                     result = transcriber.audio_to_text()
-                    result = generate_video_script(transcribed_text=result,language=language,duration=duration,tone=tone)
+                    result = GeminiApiClient().generate_video_script(transcribed_text=result,language=language,duration=duration,tone=tone)
 
                     print(f"Result: {result}")
 
@@ -129,7 +129,7 @@ class ScriptWriterAudio:
                         text_color="white", hover_color="#0157b3",
                         command=self.save_script
                     )
-                    self.save_script_btn.place(relx=0.45, rely=0.85)
+                    self.save_script_btn.place(relx=0.45, rely=0.9)
                 else: 
                     messagebox.showinfo(title="Signup",message="Please signup first to continue!")
         except:
@@ -247,7 +247,7 @@ class ScriptWriterAudio:
             text_color="white", hover_color="#0157b3",
             command=self.th_generateScript
         )
-        self.generate_script_btn.place(relx=0.03, rely=0.8)
+        self.generate_script_btn.place(relx=0.03, rely=0.9)
 
         
 
@@ -259,10 +259,9 @@ class ScriptWriterAudio:
 
         self.scroll_text_indication = CTkTextbox(
             master=self.element_window,
-            width=600, height=250,
-            corner_radius=10
+            corner_radius=20,font=CTkFont(size=16)
         )
-        self.scroll_text_indication.place(relx=0.45, rely=0.83, anchor="sw")
+        self.scroll_text_indication.place(relx=0.45, rely=0.87, anchor="sw",relwidth=0.52,relheigh=0.45)
         self.scroll_text_indication.insert("0.0", text)
         self.scroll_text_indication.configure(state="disabled")
 
@@ -274,9 +273,9 @@ class ScriptWriterAudio:
 
         self.indication_progress_frame = CTkFrame(
             master=self.element_window, corner_radius=25,
-            height=270, width=180, fg_color="#f4f2f2"
+            height=250, width=180, fg_color="#f4f2f2"
         )
-        self.indication_progress_frame.place(relx=0.45, rely=0.1)
+        self.indication_progress_frame.place(relx=0.45, rely=0.05)
 
         gif_path = os.path.join(os.getcwd(), 'assets', 'indicators', 'loading.gif')
         gif = Image.open(gif_path)
@@ -320,9 +319,9 @@ class ScriptWriterAudio:
         success_ctkimg = CTkImage(light_image=success, dark_image=success, size=(26, 26))
         self.success_frame = CTkFrame(
             master=self.element_window, corner_radius=25,
-            height=270, width=180, fg_color="#f4f2f2"
+            height=250, width=180, fg_color="#f4f2f2"
         )
-        self.success_frame.place(relx=0.63, rely=0.1)
+        self.success_frame.place(relx=0.63, rely=0.05)
 
         indicator_img = CTkLabel(master=self.success_frame, image=success_ctkimg, text="")
         indicator_img.place(relx=0.1, rely=0.083)

@@ -16,6 +16,27 @@ class feedbackCreate(BaseModel):
     feedback: str
 
 
+class UserCostingLogs(BaseModel):
+
+    username:str
+    email:str
+    model:str
+    input_token:int
+    output_token: int
+    total_token: int
+    input_cost_inr: float
+    output_cost_inr: float
+    total_cost_inr: float
+    timestamp: datetime
+
+
+
+
+    
+
+
+
+
 
 class updateCheck(BaseModel):
     version: float

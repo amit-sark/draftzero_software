@@ -47,6 +47,23 @@ class Activation(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     uuid = Column(String(36), unique=True, index=True, default=lambda: str(uuid.uuid4()))
-    expiry_date = Column(DateTime, default=lambda: datetime.utcnow() + timedelta(days=28))
+    expiry_date = Column(DateTime, default=lambda: datetime.now() + timedelta(days=28))
     already_active = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class UserCostingLogs(Base):
+    __tablename__ = "logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100))
+    email = Column(String(150))
+    model = Column(String(100))
+    input_token = Column(Integer)
+    output_token = Column(Integer)
+    total_token = Column(Integer)
+    input_cost_inr = Column(Float)
+    output_cost_inr = Column(Float)
+    total_cost_inr = Column(Float)
+    timestamp = Column(TIMESTAMP, default=datetime.now)
+
