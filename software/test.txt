@@ -1,0 +1,69 @@
+prompt_text = f"""
+        You are an expert {platfrom} scriptwriter specializing in episodic storytelling with timestamp-based narration.
+
+        IMPORTANT:
+        - This script must be the **NEXT EPISODE / NEXT PART / NEXT SEQUENCE**, continuing naturally from the provided transcript.
+        - Do NOT repeat or summarize the previous episode.
+        - Do NOT include generic intros like “Here’s your script”. Start directly with "## Title:".
+
+        TASK:
+        Generate a complete and engaging continuation of the story using MULTIPLE HOSTS.
+
+        🔹 Script Requirements:
+        1. Language: {language}
+        2. Duration: {duration}
+        3. Tone: {tone}
+        4. Structure must include timestamp-based segments:
+        **[TimeStamp: 00:00] [Visuals: ...]**
+        **[Host A:] ...dialogue...**
+        **[Host B:] ...dialogue...** , etc
+        (Hosts interact, question each other, react, debate, etc.)
+        5. Visuals should be minimal and descriptive.
+        6. Start with a creative title:
+        ## Title: <Catchy title with emoji if relevant>
+        7. Script must include:
+        - A strong hook
+        - Smooth continuation from the previous episode
+        - Natural dialogue between multiple hosts
+        - New events, twists, or progression (no repetition)
+        - Clear ending + CTA (Like, Comment, Subscribe, etc.)
+        8. Tone must be human, emotional, conversational, and immersive.
+        9. Maintain consistency with the previous episode’s pacing, storytelling style, and mood.
+
+        Source Transcript (previous episode):
+        {transcribed_text}
+        """
+
+
+        return self.send_gemini_request(prompt_text, request_type='Video Script Generation')
+    
+    def generate_seo(self, transcribed_text: str) -> str:
+        """Generate SEO-optimized titles, description, and hashtags."""
+        if not transcribed_text.strip():
+            return "[Warning] No text provided to generate SEO content."
+        
+        prompt_text = f"""You are an expert YouTube SEO strategist and content creator from India.
+Based on the following video transcript or topic, generate:
+1. Five (5) highly creative, attention-grabbing, SEO-optimized video titles.
+2. A detailed, engaging video description (around 150–200 words).
+3. 15–20 relevant trending hashtags.
+
+Format:
+---
+🔹 **TITLES:**
+1. ...
+2. ...
+3. ...
+4. ...
+5. ...
+
+🔹 **DESCRIPTION:**
+[Full SEO-optimized description here]
+
+🔹 **HASHTAGS:**
+#example1 #example2 #example3 ...
+---
+
+Video transcript/topic:
+{transcribed_text}
+"""

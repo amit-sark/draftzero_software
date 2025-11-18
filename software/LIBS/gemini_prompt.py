@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Optional, Dict, List
 from threading import Lock
 from serverId import quilla_Server
-
+from LIBS.prompt.prompt_info import youtube,micro_drama,webseries,instagram,custom_platform
 # Configuration
 LOG_URL = quilla_Server()
 appdata = os.getenv('APPDATA')
@@ -270,88 +270,110 @@ class GeminiApiClient:
         return "failed"
     
     def generate_video_script(self, transcribed_text: str, language: str = "English",
-                             duration: str = "30 seconds", tone: str = "energetic") -> str:
+                             duration: str = "30 seconds", tone: str = "energetic",platform="Youtube",next_episode="no") -> str:
         """Generate a YouTube video script from transcribed text."""
+
+        print(f"<------------------------------Before send to the gemini settings------------------------------->\nLanguage: {language}\nDuration: {duration}\nTone: {tone}\nplatform Type: {platform}\nNext-Episode: {next_episode}\n<------------------------------------------------------------>")
+
         if not transcribed_text.strip():
             return "[Warning] No text provided to generate script."
-        
+
+        # Hinglish conversion
         if language == "Hinglish":
-            language = "Hindi language written in English words"
-        
-        prompt_text = f"""You are an expert YouTube scriptwriter specializing in storytelling with timestamp-based narration.
+            language = "Hindi(Roman Script/Hinglish)"
 
-IMPORTANT:
-Do NOT include any generic intro like "Here's your YouTube video script" or "Below is a script". Start directly with "## Title:".
+        plat = platform.upper().strip()
 
-TASK:
-Generate a complete and engaging YouTube video script based on the content below.
+        # YOUTUBE
+        if plat == "YOUTUBE":
+            prompt_text = youtube(
+                platform=platform,
+                language=language,
+                duration=duration,
+                tone=tone,
+                transcribed_text=transcribed_text,
+                next_part=next_episode
+            )
 
-🔹 Script Requirements:
-1. Language: {language}
-2. Duration: {duration}
-3. Tone: {tone}
-4. Include time-based breakdowns like:
-   **[TimeStamp: 00:00] [Visuals: ...]**
-   **[Host:] ...dialogue...**
-5. Keep visuals minimal and descriptive.
-6. Include a creative title at the top:
-   ## Title: <Catchy title with emoji if relevant>
-7. The script should have:
-   - Hook/Intro
-   - Main Story or Explanation
-   - Clear Ending + CTA (Like, Comment, Subscribe, follow, etc)
-8. Maintain a natural, human tone — engaging, emotional, and conversational.
+        # INSTAGRAM
+        elif plat == "INSTAGRAM":
+            prompt_text = instagram(
+                platform=platform,
+                language=language,
+                duration=duration,
+                tone=tone,
+                transcribed_text=transcribed_text,
+                next_part=next_episode
+            )
 
-Source Content:
-{transcribed_text}
-"""
-        return self.send_gemini_request(prompt_text, request_type='Video Script Generation')
-    
+        # WEB SERIES
+        elif plat == "WEB SERIES":
+            print("Script came here web series logic!..\n")
+            prompt_text = webseries(
+                platform=platform,
+                language=language,
+                episode_duration=duration,
+                tone=tone,
+                transcribed_text=transcribed_text,
+                next_part=next_episode
+            )
+
+        # MICRO DRAMA
+        elif plat == "MICRO-DRAMA":
+            print("MICRO-DRAMA.....\n")
+            prompt_text = micro_drama(
+                platform=platform,
+                language=language,
+                duration=duration,
+                tone=tone,
+                transcribed_text=transcribed_text,
+                next_part=next_episode
+            )
+
+        else:
+            print(f"platform: {platform}\n")
+            prompt_text = custom_platform(platform=platform,
+            language=language,
+            tone=tone,
+            duration=duration,
+            transcribed_text=transcribed_text,
+            next_part=next_episode
+            )
+
+        print(f"\n\n<-------------------------This setting and prompt will appeared in gemini-------------------------------------->")
+        print(f'\nContent Type: {platform}\nLanguage: {language}\nDuration: {duration}\nTone: {tone}\nNext part: {next_episode}\n\n----- PROMPT TEXT SENT → GEMINI -----\n{prompt_text}\n')
+
+        return self.send_gemini_request(prompt_text)
+
+
     def generate_seo(self, transcribed_text: str) -> str:
         """Generate SEO-optimized titles, description, and hashtags."""
         if not transcribed_text.strip():
             return "[Warning] No text provided to generate SEO content."
         
-        prompt_text = f"""You are an expert YouTube SEO strategist and content creator from India.
-Based on the following video transcript or topic, generate:
-1. Five (5) highly creative, attention-grabbing, SEO-optimized video titles.
-2. A detailed, engaging video description (around 150–200 words).
-3. 15–20 relevant trending hashtags.
+        prompt_text = f"""You are an expert SEO strategist and content creator from India.
+        Based on the following video transcript or topic, generate:
+        1. Five (5) highly creative, attention-grabbing, SEO-optimized video titles.
+        2. A detailed, engaging video description (around 150–200 words).
+        3. 15–20 relevant trending hashtags.
 
-Format:
----
-🔹 **TITLES:**
-1. ...
-2. ...
-3. ...
-4. ...
-5. ...
+        Format:
+        ---
+        🔹 **TITLES:**
+        1. ...
+        2. ...
+        3. ...
+        4. ...
+        5. ...
 
-🔹 **DESCRIPTION:**
-[Full SEO-optimized description here]
+        🔹 **DESCRIPTION:**
+        [Full SEO-optimized description here]
 
-🔹 **HASHTAGS:**
-#example1 #example2 #example3 ...
----
+        🔹 **HASHTAGS:**
+        #example1 #example2 #example3 ...
+        ---
 
-Video transcript/topic:
-{transcribed_text}
-"""
+        Video transcript/topic:
+        {transcribed_text}
+        """
         return self.send_gemini_request(prompt_text, request_type='SEO Generation')
-
-
-'''# Example usage
-if __name__ == "__main__":
-    print("=" * 70)
-    print("Testing Gemini API Client".center(70))
-    print("=" * 70)
-    
-    client = GeminiApiClient()
-    result = client.send_gemini_request(
-        "Write a one-line story about an AI script tool called DraftZero.",
-        request_type='Test Request'
-    )
-    print(f"\n📝 Result: {result}")
-    print("\n" + "=" * 70)
-    print(f"Check '{COST_LOG_PATH}' for cost tracking!")
-    print("=" * 70)'''

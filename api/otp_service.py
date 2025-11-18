@@ -34,19 +34,31 @@ def send_email(receiver_email: str, otp: str):
     import smtplib
     from email.message import EmailMessage
 
-    # Directly set your email credentials here
-    EMAIL_USER = "no-reply@draftzero.in"
-    EMAIL_PASS = "Xujdh2RSKx2x"
-    EMAIL_HOST = "smtp.zoho.in"
-    EMAIL_PORT = 465  # Usually 587 for TLS
+    # Check if receiver is Hotmail/Outlook
+    is_microsoft_email = any(domain in receiver_email.lower() for domain in ['@hotmail.', '@outlook.', '@live.'])
+
+    # Choose SMTP provider based on receiver's domain
+    if is_microsoft_email:
+        # Use Gmail for Hotmail/Outlook recipients
+        EMAIL_USER = "sarkzone52@gmail.com"  # Replace with your Gmail
+        EMAIL_PASS = "eplkfoaueknzgvwm"  # Replace with your Gmail App Password
+        EMAIL_HOST = "smtp.gmail.com"
+        EMAIL_PORT = 465
+        FROM_EMAIL = "DraftZero AI <sarkzone52@gmail.com>"
+    else:
+        # Use Zoho by default
+        EMAIL_USER = "no-reply@draftzero.in"
+        EMAIL_PASS = "Xujdh2RSKx2x"
+        EMAIL_HOST = "smtp.zoho.in"
+        EMAIL_PORT = 465
+        FROM_EMAIL = "DraftZero AI <no-reply@draftzero.in>"
 
     msg = EmailMessage()
     msg["Subject"] = "DraftZero AI Authentication code"
-    msg["From"] = "DraftZero AI <no-reply@draftzero.in>"
+    msg["From"] = FROM_EMAIL
     msg["Reply-To"] = "support@draftzero.in"
     msg["Return-Path"] = "no-reply@draftzero.in"
     msg["Message-ID"] = f"<{datetime.now().timestamp()}@draftzero.in>"
-
     msg["To"] = receiver_email
 
     html_content = f"""
@@ -80,6 +92,11 @@ def send_email(receiver_email: str, otp: str):
     msg.set_content(f"Your OTP is: {otp} (valid for 2 minutes)")
     msg.add_alternative(html_content, subtype="html")
 
-    with smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT) as server:
-        server.login(EMAIL_USER, EMAIL_PASS)
-        server.send_message(msg)
+    try:
+        with smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT) as server:
+            server.login(EMAIL_USER, EMAIL_PASS)
+            server.send_message(msg)
+        print(f"Email sent successfully using {EMAIL_HOST}")
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        raise

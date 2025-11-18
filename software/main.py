@@ -3,7 +3,7 @@ from PIL import Image
 from functools import partial
 import os,csv
 import requests
-# window 
+# window
 
 from window.scripts_writer_link import ScriptWriterLink
 from threading import Thread
@@ -32,7 +32,7 @@ SIGN_PATH = os.path.join(quilla_folder,"signup_data.csv")
 BASE_PATH = os.getcwd()
 
 class Quilla:
-    def __init__(self, main):
+    def __init__(self, main): 
         self.window = main
         self.selected_button = None  
         self.current_screen = None

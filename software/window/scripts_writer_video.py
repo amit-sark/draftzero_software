@@ -1,4 +1,4 @@
-from customtkinter import CTk, CTkFrame, CTkButton, CTkLabel, CTkEntry, CTkImage, CTkOptionMenu, CTkTextbox
+from customtkinter import CTk, CTkFrame, CTkButton, CTkLabel, CTkFont, CTkImage, CTkOptionMenu, CTkTextbox,CTkSwitch
 from tkinter import messagebox
 from PIL import Image, ImageSequence
 import time
@@ -7,6 +7,7 @@ from tkinter import filedialog
 
 
 from LIBS.audio_download import download_youtube_audio
+from threading import Thread
 from LIBS.transcriber import Transcriber
 from LIBS.gemini_prompt import GeminiApiClient
 
@@ -87,13 +88,12 @@ class ScriptWriterVideo:
             else:
 
                 if os.path.exists(login_path) or os.path.exists(signup_path):
-                    language = self.language_option.get().strip()
-                    tone = self.tone_option.get().strip()
+                    language, tone, platform = self.get_script_parameters()
                     duration = self.time_option.get().strip()
 
                     start_time = time.time()
-                    print(f"Start time: {start_time} ")
-                    print(f"Link: {link}\nLanguage: {language}\nTone: {tone}\nDuration: {duration}\n")
+                    print(f"Start time: {start_time}")
+                    print(f"Link: {link}\nLanguage: {language}\nTone: {tone}\nPlatform: {platform}\nDuration: {duration}\n")
 
                     self.indication()
                     self.show_details.configure(text="Please wait while\nyour assistant\nis fetching details")
@@ -104,7 +104,8 @@ class ScriptWriterVideo:
                         show_details=self.show_details
                     )
                     result = transcriber.video_to_text()
-                    result = GeminiApiClient().generate_video_script(transcribed_text=result,language=language,duration=duration,tone=tone)
+                    self.result = result
+                    result = GeminiApiClient().generate_video_script(transcribed_text=self.result,language=language,duration=duration,tone=tone,platform=platform)
 
                     print(f"Result: {result}")
 
@@ -137,10 +138,106 @@ class ScriptWriterVideo:
             pass
         finally:
             self.generate_script_btn.configure(state="normal")
+
+            
+            self.re_generate_script_btn = CTkButton(
+            master=self.element_window, text="Re Generate", font=("", 14, "bold"),
+            height=38, corner_radius=10, fg_color="#007bff",
+            text_color="white", hover_color="#0157b3",
+            command=self.th_ReGenerate
+            )
+            self.re_generate_script_btn.place(relx=0.20, rely=0.9)
     
+
+    def th_ReGenerate(self):
+
+        th = Thread(target=self.ReGenerateScript)
+        th.start()
+    
+
+
+    def ReGenerateScript(self):
+        link = self.file_path
+        self.generate_script_btn.configure(state="disabled")
+
+        try: 
+            self.save_script_btn.destroy()
+        except:
+            pass 
+
+
+        try: 
+            if link == "" or link is None:
+                messagebox.showwarning(
+                    title="Zero Reference",
+                    message="Please enter any video/audio contain reference"
+                )
+                self.generate_script_btn.configure(state="normal")
+
+            else:
+
+                if os.path.exists(login_path) or os.path.exists(signup_path):
+                    language, tone, platform = self.get_script_parameters()
+                    duration = self.time_option.get().strip()
+
+                    start_time = time.time()
+                    print(f"Start time: {start_time}")
+                    print(f"Link: {link}\nLanguage: {language}\nTone: {tone}\nPlatform: {platform}\nDuration: {duration}\n")
+
+                    self.indication()
+                    self.show_details.configure(text="Please wait while\nyour assistant\nis fetching details")
+
+                    self.show_details.configure(text="Your Script is\nbeing generated.\nPlease wait a moment.")
+                  
+                    result = GeminiApiClient().generate_video_script(transcribed_text=self.result,language=language,duration=duration,tone=tone,platform=platform)
+
+                    print(f"Result: {result}")
+
+                    end_time = time.time()
+                    print(f" Total Consume time: {(end_time - start_time)} sec ")
+
+                    self.scrollable_text(result)
+
+                    self.show_details.configure(
+                        text="Your words are woven\ninto form — time to save\nthis creation."
+                    )
+
+                    # Stop the loading animation
+                    self.loading_running = False
+                    self.in_progress.configure(text="Done")
+                    # Show success frame with check.png
+                    self.success()
+                    self.generate_script_btn.configure(state="normal")
+
+                    self.save_script_btn = CTkButton(
+                        master=self.element_window, text="Save Script", font=("", 14, "bold"),
+                        height=38, corner_radius=10, fg_color="#007bff",
+                        text_color="white", hover_color="#0157b3",
+                        command=self.save_script
+                    )
+                    self.save_script_btn.place(relx=0.45, rely=0.9)
+                else: 
+                    messagebox.showinfo(title="Signup",message="Please signup first to continue!")
+        except:
+            pass
+        finally:
+            self.generate_script_btn.configure(state="normal")
+
+            
+            self.re_generate_script_btn = CTkButton(
+            master=self.element_window, text="Re Generate", font=("", 14, "bold"),
+            height=38, corner_radius=10, fg_color="#007bff",
+            text_color="white", hover_color="#0157b3",
+            command=self.th_ReGenerate
+            )
+            self.re_generate_script_btn.place(relx=0.20, rely=0.9)
+    
+
+
+
+
     def th_generateScript(self):
 
-        from threading import Thread
         th = Thread(target=self.GenerateScript,daemon=True)
         th.start()
 
@@ -196,16 +293,16 @@ class ScriptWriterVideo:
         file.place(relx=0.18,rely=0.43)
 
         script_setting = CTkLabel(master=self.element_window, text="Script Setting", font=("", 14, "bold"))
-        script_setting.place(relx=0.03, rely=0.58)
+        script_setting.place(relx=0.03, rely=0.53)
 
         language = CTkLabel(master=self.element_window, text="Language", font=("", 13, "bold"))
-        language.place(relx=0.03, rely=0.63)
+        language.place(relx=0.03, rely=0.58)
 
         tone = CTkLabel(master=self.element_window, text="Tone", font=("", 13, "bold"))
-        tone.place(relx=0.15, rely=0.63)
+        tone.place(relx=0.15, rely=0.58)
 
         Duration = CTkLabel(master=self.element_window, text="Duration(min)", font=("", 13, "bold"))
-        Duration.place(relx=0.27, rely=0.63)
+        Duration.place(relx=0.27, rely=0.58)
 
         languages = ["English", "Hindi", "Hinglish", "Custom"]
         self.language_option = CTkOptionMenu(
@@ -214,7 +311,7 @@ class ScriptWriterVideo:
             button_color="#f9f9f7", dropdown_fg_color="#f9f9f7",
             button_hover_color="#f9f9f7"
         )
-        self.language_option.place(relx=0.03, rely=0.69)
+        self.language_option.place(relx=0.03, rely=0.63)
 
         tones = ["Professional", "Casual", "Comedy", "Informative", "Custom"]
         self.tone_option = CTkOptionMenu(
@@ -223,7 +320,7 @@ class ScriptWriterVideo:
             button_color="#f9f9f7", dropdown_fg_color="#f9f9f7",
             button_hover_color="#f9f9f7"
         )
-        self.tone_option.place(relx=0.15, rely=0.69)
+        self.tone_option.place(relx=0.15, rely=0.63)
 
         ltime = ["30s", "1 min", "3 min", "5 min", "8 min", "10 min"]
         self.time_option = CTkOptionMenu(
@@ -232,7 +329,34 @@ class ScriptWriterVideo:
             button_color="#f9f9f7", dropdown_fg_color="#f9f9f7",
             button_hover_color="#f9f9f7"
         )
-        self.time_option.place(relx=0.27, rely=0.69)
+        self.time_option.place(relx=0.27, rely=0.63)
+
+
+        
+        platform = CTkLabel(master=self.element_window, text="Content type: ", font=("", 13, "bold"))
+        platform.place(relx=0.02, rely=0.7)
+        ltime = ["Youtube", "Instagram","Web Series", "Micro-Drama","Custom"]
+        self.platform = CTkOptionMenu(
+            master=self.element_window, values=ltime, height=40, width=120,
+            fg_color="#f9f9f7", text_color="black",
+            button_color="#f9f9f7", dropdown_fg_color="#f9f9f7",
+            button_hover_color="#f9f9f7",
+            command=self.on_platform_change
+        )
+        self.platform.place(relx=0.11, rely=0.7)
+
+
+        platform = CTkLabel(master=self.element_window, text="Next-Episode", font=("", 13, "bold"))
+        platform.place(relx=0.23, rely=0.71)
+
+        self.create_ctk_toggle(x=0.33,y=0.71,callback=self.toggle_changed)
+
+        
+
+
+
+
+
 
         self.generate_script_btn = CTkButton(
             master=self.element_window, text="Generate Script", font=("", 14, "bold"),
@@ -242,7 +366,122 @@ class ScriptWriterVideo:
         )
         self.generate_script_btn.place(relx=0.03, rely=0.9)
 
+
+
+
+    def create_ctk_toggle(self,x=0, y=0, initial=False, callback=None):
+        """
+        Create a yes/no toggle switch using CustomTkinter.
+        Calls callback("yes") or callback("no") when toggled.
+        """
+
+        # When switch is clicked
+        def on_switch():
+            value = "yes" if switch.get() == 1 else "no"
+            if callback:
+                callback(value)
+
+        switch = CTkSwitch(
+            master=self.element_window,
+            text="",                 # no label
+            command=on_switch,
+            onvalue=1,
+            offvalue=0
+        )
+
+        switch.place(relx=x, rely=y) 
+
+        # Set initial state
+        if initial:
+            switch.select()
+        else:
+            switch.deselect()
+
+        return switch
+
+
+
+
+
+
+    def on_language_change(self, choice):
+        """Handle language dropdown change"""
+        if choice == "Custom":
+            self.open_custom_popup("Language", self.handle_custom_language)
+    
+    def on_tone_change(self, choice):
+        """Handle tone dropdown change"""
+        if choice == "Custom":
+            self.open_custom_popup("Tone", self.handle_custom_tone)
+    
+    def on_platform_change(self, choice):
+        """Handle platform dropdown change"""
+        if choice == "Custom":
+            self.open_custom_popup("Platform", self.handle_custom_platform)
+    
+    def open_custom_popup(self, input_type, callback):
+        """Open the custom input popup"""
+        from custom_pop_up import CustomInputPopup  # Import the popup class
+        popup = CustomInputPopup(
+            parent=self.window,
+            input_type=input_type,
+            callback=callback
+        )
+    
+    def handle_custom_language(self, value):
+        """Handle custom language input"""
+        self.custom_language = value
+        self.language_option.set(f"Custom: {value[:15]}...")  # Show truncated in dropdown
+        print(f"Custom language set: {value}")
+    
+    def handle_custom_tone(self, value):
+        """Handle custom tone input"""
+        self.custom_tone = value
+        self.tone_option.set(f"Custom: {value[:15]}...")
+        print(f"Custom tone set: {value}")
+    
+    def handle_custom_platform(self, value):
+        """Handle custom platform input"""
+        self.platform.set(f"Custom: {value[:15]}...")
+        print(f"Custom platform set: {value}")
+        self.custom_platform = value
+
+    
+    def get_script_parameters(self):
+        """Get the actual values to use for script generation"""
+        # Get language value
+        language_choice = self.language_option.get()
+        if language_choice.startswith("Custom:") and self.custom_language:
+            language = self.custom_language
+        else:
+            language = language_choice
         
+        # Get tone value
+        tone_choice = self.tone_option.get()
+        if tone_choice.startswith("Custom:") and self.custom_tone:
+            tone = self.custom_tone
+        else:
+            tone = tone_choice
+        
+        # Get platform value
+        platform_choice = self.platform.get()
+        if platform_choice.startswith("Custom:") and self.custom_platform:
+            platform = self.custom_platform
+        else:
+            platform = platform_choice
+        
+        return language, tone, platform
+
+
+
+
+
+
+    def toggle_changed(self,value):
+        print("Toggle:", value)
+        self.toggel_value = value
+
+
         
 
     def scrollable_text(self, text):
@@ -253,7 +492,8 @@ class ScriptWriterVideo:
 
         self.scroll_text_indication = CTkTextbox(
             master=self.element_window,
-            corner_radius=20
+            corner_radius=20,
+            font=CTkFont("",16)
         )
         self.scroll_text_indication.place(relx=0.45, rely=0.87, anchor="sw",relwidth=0.52,relheight=0.45)
         self.scroll_text_indication.insert("0.0", text)
