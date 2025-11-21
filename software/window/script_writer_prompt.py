@@ -20,31 +20,45 @@ class ScriptWriterPrompt:
         self.loading_frames = []
         self.loading_index = 0
         self.loading_running = False
+        
+        # Initialize custom input attributes
+        self.custom_language = None
+        self.custom_platform = None
     
     def GenerateBtn(self):
         prompt = self.text_area.get("0.0", "end-1c").strip()
 
         try:                            
             self.save_script_btn.destroy()
+            self.success_frame.destroy()
+            self.scroll_text_indication.destroy()
         except:
             pass    
 
-
         try:
             if prompt == "" or prompt is None or prompt == self.placeholder:
-                    messagebox.showwarning(
-                        title="Zero Reference",
-                        message="Please enter any video/audio contain reference"
-                    )
-                    self.generate_script_btn.configure(state="normal")
+                messagebox.showwarning(
+                    title="Zero Reference",
+                    message="Please enter any video/audio contain reference"
+                )
+                self.generate_script_btn.configure(state="normal")
             else:
-
                 if os.path.exists(login_path) or os.path.exists(signup_path):
+                    # Get script parameters
+                    language, platform = self.get_script_parameters()
+                    duration = self.time_option.get().strip()
+
+                    print(f"Language: {language}\nPlatform: {platform}\nDuration: {duration}\n")
                     print(f"Prompt: {prompt}")
+                    
                     self.generate_script_btn.configure(state='disabled')
 
                     self.indication()
-                    result = GeminiApiClient().generate_video_script(transcribed_text=prompt,language="Hinglish")
+                    # Use the selected language instead of hardcoded "Hinglish"
+                    result = GeminiApiClient(type_of_operation="Text-Prompt-To-Script").generate_video_script(
+                        transcribed_text=prompt,
+                        language=language
+                    )
                     self.loading_running = False
                     self.success()
 
@@ -59,14 +73,13 @@ class ScriptWriterPrompt:
                     self.save_script_btn.place(relx=0.45, rely=0.9)
                 else:
                     messagebox.showinfo(title="Signup",message="Please signup first to continue!")
-        except:
-            pass
+        except Exception as e:
+            print(f"Error in GenerateBtn: {e}")
+            messagebox.showerror(title="Error", message=f"An error occurred: {str(e)}")
         finally:
             self.generate_script_btn.configure(state='normal')
 
-
     def th_GenerateBtn(self):
-
         th = Thread(target=self.GenerateBtn,daemon=True)
         th.start()
    
@@ -94,9 +107,7 @@ class ScriptWriterPrompt:
         else:
             messagebox.showwarning(title="No Script", message="Generate a script first before saving.")
 
-
     def gui(self):
-
         for widget in self.window.winfo_children():
             widget.destroy()
 
@@ -138,7 +149,7 @@ class ScriptWriterPrompt:
         self.make_button(self.element_window, "Text Prompt", 0.28,default=True)
 
         paste_link = CTkLabel(master=self.element_window, text="Your prompt", font=("", 14, "bold"))
-        paste_link.place(relx=0.03, rely=0.43)
+        paste_link.place(relx=0.03, rely=0.36)
 
         self.text_area = CTkTextbox(
             master=self.element_window,
@@ -152,7 +163,7 @@ class ScriptWriterPrompt:
         # --- Placeholder setup ---
         self.placeholder = "Got an idea? Hand it over — our AI loves turning thoughts into magic."
         self.text_area.insert("0.0", self.placeholder)
-        self.text_area.configure(text_color="#a1a0a0")  # greyed placeholder look
+        self.text_area.configure(text_color="#a1a0a0")
 
         self.generate_script_btn = CTkButton(
             master=self.element_window, text="Generate Script", font=("", 14, "bold"),
@@ -162,21 +173,89 @@ class ScriptWriterPrompt:
         )
         self.generate_script_btn.place(relx=0.035, rely=0.91)
 
+        # Platform dropdown
+        platforms = ["Youtube", "Instagram","Web Series", "Micro-Drama","Custom"]
+        self.platform = CTkOptionMenu(
+            master=self.element_window, values=platforms, height=40, width=120,
+            fg_color="#f9f9f7", text_color="black",
+            button_color="#f9f9f7", dropdown_fg_color="#f9f9f7",
+            button_hover_color="#f9f9f7",
+            command=self.on_platform_change
+        )
+        self.platform.place(relx=0.05, rely=0.42)
+
+        # Language dropdown
+        languages = ["English", "Hindi", "Hinglish","Bangla","Custom"]
+        self.language_option = CTkOptionMenu(
+            master=self.element_window, values=languages, height=40, width=120,
+            fg_color="#f9f9f7", text_color="black",
+            button_color="#f9f9f7", dropdown_fg_color="#f9f9f7",
+            button_hover_color="#f9f9f7",
+            command=self.on_language_change
+        )
+        self.language_option.place(relx=0.17, rely=0.42)
+
+        # Time dropdown
+        time_options = ["30 seconds", "1 minute", "3 minute", "5 minute", "8 minute", "10 minute"]
+        self.time_option = CTkOptionMenu(
+            master=self.element_window, values=time_options, height=40, width=120,
+            fg_color="#f9f9f7", text_color="black",
+            button_color="#f9f9f7", dropdown_fg_color="#f9f9f7",
+            button_hover_color="#f9f9f7"
+        )
+        self.time_option.place(relx=0.29, rely=0.42)
+
         self.text_area.bind("<FocusIn>", self.clear_placeholder)
         self.text_area.bind("<FocusOut>",self.add_placeholder)
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    def on_language_change(self, choice):
+        """Handle language dropdown change"""
+        if choice == "Custom":
+            self.open_custom_popup("Language", self.handle_custom_language)
+    
+    def on_platform_change(self, choice):
+        """Handle platform dropdown change"""
+        if choice == "Custom":
+            self.open_custom_popup("Platform", self.handle_custom_platform)
+    
+    def open_custom_popup(self, input_type, callback):
+        """Open the custom input popup"""
+        from custom_pop_up import CustomInputPopup
+        popup = CustomInputPopup(
+            parent=self.window,
+            input_type=input_type,
+            callback=callback
+        )
+    
+    def handle_custom_language(self, value):
+        """Handle custom language input"""
+        self.custom_language = value
+        self.language_option.set(f"Custom: {value[:15]}...")
+        print(f"Custom language set: {value}")
+    
+    def handle_custom_platform(self, value):
+        """Handle custom platform input"""
+        self.custom_platform = value
+        self.platform.set(f"Custom: {value[:15]}...")
+        print(f"Custom platform set: {value}")
+    
+    def get_script_parameters(self):
+        """Get the actual values to use for script generation"""
+        # Get language value
+        language_choice = self.language_option.get()
+        if language_choice.startswith("Custom:") and self.custom_language:
+            language = self.custom_language
+        else:
+            language = language_choice
+        
+        # Get platform value
+        platform_choice = self.platform.get()
+        if platform_choice.startswith("Custom:") and self.custom_platform:
+            platform = self.custom_platform
+        else:
+            platform = platform_choice
+        
+        return language, platform
 
     def clear_placeholder(self,event):
         if self.text_area.get("0.0", "end-1c") == self.placeholder:
@@ -301,27 +380,18 @@ class ScriptWriterPrompt:
 
             if text.strip() =="Link":
                 from window.scripts_writer_link import ScriptWriterLink
-
                 app = ScriptWriterLink(window=self.element_window)
                 app.gui()
 
             elif text.strip() =="Video File":
-
                 from window.scripts_writer_video import ScriptWriterVideo
-
                 app = ScriptWriterVideo(window=self.element_window)
                 app.gui()
 
             elif text.strip() == "Audio File":    
-
                 from window.script_writer_audio import ScriptWriterAudio
-
                 app = ScriptWriterAudio(window=self.element_window)
                 app.gui()
-                
-
-
-
 
             if self.selected_button is not None and self.selected_line is not None:
                 self.selected_button.configure(text_color="#a1a0a0")
@@ -345,9 +415,3 @@ class ScriptWriterPrompt:
 
             self.window.after_idle(place_default_line)
         return btn
-
-
-'''window = CTk()
-app = ScriptWriterPrompt(window=window)
-app.gui()
-window.mainloop()'''

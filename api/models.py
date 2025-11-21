@@ -51,7 +51,6 @@ class Activation(Base):
     already_active = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
 
-
 class UserCostingLogs(Base):
     __tablename__ = "logs"
 
@@ -59,6 +58,7 @@ class UserCostingLogs(Base):
     username = Column(String(100))
     email = Column(String(150))
     model = Column(String(100))
+    type_of_operation = Column(String(100),nullable=True)
     input_token = Column(Integer)
     output_token = Column(Integer)
     total_token = Column(Integer)
@@ -66,4 +66,3 @@ class UserCostingLogs(Base):
     output_cost_inr = Column(Float)
     total_cost_inr = Column(Float)
     timestamp = Column(TIMESTAMP, default=datetime.now)
-

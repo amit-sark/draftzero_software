@@ -21,6 +21,7 @@ class UserCostingLogs(BaseModel):
     username:str
     email:str
     model:str
+    type_of_operation:str
     input_token:int
     output_token: int
     total_token: int
@@ -29,10 +30,6 @@ class UserCostingLogs(BaseModel):
     total_cost_inr: float
     timestamp: datetime
 
-
-
-
-    
 
 
 

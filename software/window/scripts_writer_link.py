@@ -101,9 +101,12 @@ class ScriptWriterLink:
     def ReGenerate(self):
         link = self.link.get().strip()
         self.re_generate_script_btn.configure(state="disabled")
+        self.generate_script_btn.configure(state="disabled")
 
         try: 
             self.save_script_btn.destroy()
+            self.success_frame.destroy()
+            self.scroll_text_indication.destroy()
         except:
             pass 
 
@@ -131,7 +134,7 @@ class ScriptWriterLink:
 
                     self.show_details.configure(text="Your Script is\nbeing generated.\nPlease wait a moment.")
                       
-                    result = GeminiApiClient().generate_video_script(platform=platform,transcribed_text=self.re_result,language=language,duration=duration,tone=tone,next_episode=self.toggel_value)
+                    result = GeminiApiClient(type_of_operation="Link-To-Script").generate_video_script(platform=platform,transcribed_text=self.re_result,language=language,duration=duration,tone=tone,next_episode=self.toggel_value)
 
                     print(f"Result: {result}")
 
@@ -174,6 +177,8 @@ class ScriptWriterLink:
 
         try: 
             self.save_script_btn.destroy()
+            self.success_frame.destroy()
+            self.scroll_text_indication.destroy()
         except:
             pass 
 
@@ -207,7 +212,7 @@ class ScriptWriterLink:
                         )
                         result = transcriber.audio_to_text()
                         self.re_result = result
-                        result = GeminiApiClient().generate_video_script(platform=platform,transcribed_text=result,language=language,duration=duration,tone=tone,next_episode=self.toggel_value)
+                        result = GeminiApiClient(type_of_operation="Link-To-Script").generate_video_script(platform=platform,transcribed_text=result,language=language,duration=duration,tone=tone,next_episode=self.toggel_value)
 
                         print(f"Result: {result}")
 

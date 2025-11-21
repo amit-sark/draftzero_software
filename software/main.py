@@ -62,10 +62,7 @@ class Quilla:
                             else:
                                 self.plan_details.configure(text='Expired')
 
-
                     #days= self.days_left()
-
-
 
     
     def update_quilla(self):
@@ -363,10 +360,7 @@ class Quilla:
             update_check = Thread(target=self.update_quilla)
             update_check.start()
         
-        
         self.loginbtn()
-
-
 
     def signup(self):
         import time
@@ -470,7 +464,6 @@ class Quilla:
                         self.loginBtn.place(relx=0,rely=0.258)
                         self.plan_details.configure(text="")
                         messagebox.showwarning(title="User Not Found 🚫",message=( "Oops! We couldn’t find that username.\n" "Double-check your spelling or try again.\n" "Everyone makes typos — even the best of us!"))
-
 
         except requests.RequestException as e:
             print(f"Network error during login: {e}")

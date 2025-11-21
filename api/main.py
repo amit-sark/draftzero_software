@@ -10,7 +10,11 @@ from otp_service import generate_otp, send_email, store_otp, verify_otp
 from activation import check_activation,create_activation,get_activation_details
 
 
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine, checkfirst=True)
+except Exception as e:
+	print(f"Error: {e}")
+
 
 app = FastAPI(title="Wish pen API's")
 
@@ -136,6 +140,7 @@ def userlog(user: schemas.UserCostingLogs, db: Session = Depends(get_db)):
         input_cost_inr=user.input_cost_inr,
         output_cost_inr=user.output_cost_inr,
         total_cost_inr=user.total_cost_inr,
+        type_of_operation = user.type_of_operation
     )
 
     db.add(logs)

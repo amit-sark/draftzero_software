@@ -43,10 +43,12 @@ USD_TO_INR = 88.73
 class GeminiApiClient:
     """Thread-safe Gemini API client with cost tracking and user management."""
     
-    def __init__(self, default_model: str = 'gemini-2.5-flash'):
+    def __init__(self, default_model: str = 'gemini-2.5-flash',type_of_operation:str=None):
         self.default_model = default_model
+        self.type_of_operation = type_of_operation
         self.username: Optional[str] = None
         self.email: Optional[str] = None
+
         self._last_key_index = -1
         self._key_lock = Lock()  # Thread-safe key rotation
         
@@ -147,7 +149,8 @@ class GeminiApiClient:
                 "input_cost_inr": float(cost_data['input_cost_inr']),
                 "output_cost_inr": float(cost_data['output_cost_inr']),
                 "total_cost_inr": float(cost_data['total_cost_inr']),
-                "timestamp": cost_data['timestamp']
+                "timestamp": cost_data['timestamp'],
+                "type_of_operation": self.type_of_operation
             }
             
             # Debug: Print payload before sending

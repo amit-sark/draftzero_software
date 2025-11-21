@@ -73,6 +73,8 @@ class ScriptWriterAudio:
 
         try: 
             self.save_script_btn.destroy()
+            self.success_frame.destroy()
+            self.scroll_text_indication.destroy()
         except:
             pass 
 
@@ -105,7 +107,7 @@ class ScriptWriterAudio:
                     )
                     result = transcriber.audio_to_text()
                     self.result = result
-                    result = GeminiApiClient().generate_video_script(transcribed_text=self.result,language=language,duration=duration,tone=tone,platform=platform)
+                    result = GeminiApiClient(type_of_operation="Audio-To-Script").generate_video_script(transcribed_text=self.result,language=language,duration=duration,tone=tone,platform=platform)
 
                     print(f"Result: {result}")
 
@@ -152,9 +154,12 @@ class ScriptWriterAudio:
     def ReGenerateScript(self):
         link = self.file_path
         self.generate_script_btn.configure(state="disabled")
+        self.re_generate_script_btn.configure(state="disabled")
 
         try: 
             self.save_script_btn.destroy()
+            self.success_frame.destroy()
+            self.scroll_text_indication.destroy()
         except:
             pass 
 
@@ -219,6 +224,7 @@ class ScriptWriterAudio:
             pass
         finally:
             self.generate_script_btn.configure(state="normal")
+            self.re_generate_script_btn.configure(state="normal")
 
             self.re_generate_script_btn = CTkButton(
             master=self.element_window, text="Re Generate", font=("", 14, "bold"),
@@ -320,7 +326,9 @@ class ScriptWriterAudio:
             master=self.element_window, values=languages, height=40, width=120,
             fg_color="#f9f9f7", text_color="black",
             button_color="#f9f9f7", dropdown_fg_color="#f9f9f7",
-            button_hover_color="#f9f9f7"
+            button_hover_color="#f9f9f7",
+            command=self.on_language_change
+
         )
         self.language_option.place(relx=0.03, rely=0.63)
 
@@ -329,7 +337,9 @@ class ScriptWriterAudio:
             master=self.element_window, values=tones, height=40, width=120,
             fg_color="#f9f9f7", text_color="black",
             button_color="#f9f9f7", dropdown_fg_color="#f9f9f7",
-            button_hover_color="#f9f9f7"
+            button_hover_color="#f9f9f7",
+            command=self.on_tone_change  # Add this line
+
         )
         self.tone_option.place(relx=0.15, rely=0.63)
 
@@ -338,7 +348,8 @@ class ScriptWriterAudio:
             master=self.element_window, values=ltime, height=40, width=120,
             fg_color="#f9f9f7", text_color="black",
             button_color="#f9f9f7", dropdown_fg_color="#f9f9f7",
-            button_hover_color="#f9f9f7"
+            button_hover_color="#f9f9f7",
+            
         )
         self.time_option.place(relx=0.27, rely=0.63)
 
